@@ -1,5 +1,76 @@
 var security_data;
 
+function getFrequency(){
+    var frequencies = {};
+    for(var count=0; count < security_data.length; count++)
+    {
+        var cell_data = security_data[count].split(",");
+        frequencies[cell_data[2]] =  (frequencies[cell_data[2]] || 0)+ 1;
+    }
+    return frequencies;
+}
+
+function getFrequencyByCol(colNum){
+    var colNum = colNum-1;
+    var counts = {};
+    for(var count=0; count < security_data.length; count++)
+    {
+        var cell_data = security_data[count].split(",");
+        counts[cell_data[colNum]] =  (counts[cell_data[colNum]] || 0)+ 1;
+    }
+    return counts;
+}
+
+function jenksAnalysis(){
+    var frequencies = getFrequency();
+    var total = 0;
+    var freqLength = 0;
+
+    $.each(frequencies, function(index, value){
+        total += value;
+        freqLength++;
+    })
+
+    var avg = total / freqLength;
+
+    var squaredDifferences = [];
+    $.each(frequencies, function(index, value){
+        squaredDifferences.push(Math.pow((value-avg), 2));
+    })
+
+    total = 0;
+    var length = 0;
+    var ssd = 0;
+    $.each(squaredDifferences, function(index, value){
+        total += value;
+        length++;
+    })
+
+    var ssd = total / length;
+    var ssdSqrt = Math.sqrt(ssd);
+
+//
+//    var newArr = [];
+//    $.each(frequencies, function(index, value){
+//        newArr.push(value);
+//    })
+//
+//    newArr.sort(function(a, b){return a-b});
+
+//    var arrays = [];
+//    var size = (newArr.length/2)-1;
+//
+//    var largestValue = newArr.slice(-1).pop()
+//
+//    while (newArr.length > 0){
+//        size++;
+//        arrays.push(newArr.splice(0, size));
+//    }
+//
+//
+    return ssdSqrt;
+}
+
 $(document).ready(function(){
     $('#load-btn').click(function(){
         $.ajax({
@@ -12,8 +83,22 @@ $(document).ready(function(){
                 for(var count=0; count < security_data.length; count++)
                 {
                     var cell_data = security_data[count].split(",");
-                    table_data += '<tr>';
+                    var frequencies = getFrequency();
+
+                    var jenks = jenksAnalysis();
+
+                    $.each(frequencies, function(index, value){
+                        if(cell_data[2] === index){
+                            if(value <= jenks){
+                                table_data += '<tr class="irregular">';
+                            }else{
+                                table_data += '<tr>';
+                            }
+                        }
+                    })
+
                     table_data += '<td>'+count+'</td>';
+
                     for(var cell_count = 0; cell_count < cell_data.length; cell_count++)
                     {
                         if(count===0){
@@ -32,21 +117,9 @@ $(document).ready(function(){
         $('#load-btn').hide();
     })
 
-    function getCounts(colNum){
-        var colNum = colNum-1;
-        var counts = {};
-        for(var count=0; count < security_data.length; count++)
-        {
-            var cell_data = security_data[count].split(",");
-            counts[cell_data[colNum]] =  (counts[cell_data[colNum]] || 0)+ 1;
-        }
-        return counts;
-    }
-
     $(document).on('click', '#data-table th', function(){
         var colNum = $(this).text();
-        var counts = getCounts(colNum);
-        console.log(counts);
+        var counts = getFrequencyByCol(colNum);
         drawChart(colNum);
     })
 
@@ -62,7 +135,7 @@ $(document).ready(function(){
     function drawChart(colNum) {
 
         // Create the data table.
-        var counts = getCounts(colNum);
+        var counts = getFrequencyByCol(colNum);
 
         var data = new google.visualization.DataTable();
         data.addColumn('string', 'Column');
