@@ -21,34 +21,70 @@ function getFrequencyByCol(colNum){
     return counts;
 }
 
+function calcSDD(arr){
+    //Sort array
+    arr.sort(function(a, b){return a-b});
+
+    //Calculate array average
+    var sum, avg = 0;
+
+    if (arr.length){
+        sum = arr.reduce(function(a, b) { return a + b; });
+        avg = sum / arr.length;
+    }
+
+    //Calculate squared differences
+    var sqDiff = [];
+
+    for(let i = 0; i < arr.length; i++){
+        sqDiff.push(Math.pow((arr[i]-avg), 2));
+    }
+
+    //Calculate average of squared differences
+    if (sqDiff.length){
+        sum = sqDiff.reduce(function(a, b) { return a + b; });
+        avg = sum / sqDiff.length;
+    }
+
+    //Calculate SDD
+    var sdd = Math.sqrt(avg);
+
+    return sdd;
+}
+
 function jenksAnalysis(){
+    //Get frequencies object
     var frequencies = getFrequency();
-    var total = 0;
-    var freqLength = 0;
+
+    //Convert frequencies object to array
+    var arr = [];
 
     $.each(frequencies, function(index, value){
-        total += value;
-        freqLength++;
+        arr.push(value);
     })
 
-    var avg = total / freqLength;
+    var sdd = calcSDD(arr);
 
-    var squaredDifferences = [];
-    $.each(frequencies, function(index, value){
-        squaredDifferences.push(Math.pow((value-avg), 2));
-    })
+    return sdd;
 
-    total = 0;
-    var length = 0;
-    var ssd = 0;
-    $.each(squaredDifferences, function(index, value){
-        total += value;
-        length++;
-    })
-
-    var ssd = total / length;
-    var ssdSqrt = Math.sqrt(ssd);
-
+//    var avg = total / freqLength;
+//
+//    var squaredDifferences = [];
+//    $.each(frequencies, function(index, value){
+//        squaredDifferences.push(Math.pow((value-avg), 2));
+//    })
+//
+//    total = 0;
+//    var length = 0;
+//    var ssd = 0;
+//    $.each(squaredDifferences, function(index, value){
+//        total += value;
+//        length++;
+//    })
+//
+//    var ssd = total / length;
+//    var ssdSqrt = Math.sqrt(ssd);
+//
 //
 //    var newArr = [];
 //    $.each(frequencies, function(index, value){
@@ -56,7 +92,7 @@ function jenksAnalysis(){
 //    })
 //
 //    newArr.sort(function(a, b){return a-b});
-
+//
 //    var arrays = [];
 //    var size = (newArr.length/2)-1;
 //
@@ -67,9 +103,12 @@ function jenksAnalysis(){
 //        arrays.push(newArr.splice(0, size));
 //    }
 //
+//    //console.log(arrays);
 //
-    return ssdSqrt;
+//    return ssdSqrt;
 }
+
+
 
 $(document).ready(function(){
     $('#load-btn').click(function(){
@@ -110,6 +149,7 @@ $(document).ready(function(){
                     }
                     table_data += '</tr>';
                 }
+                jenksAnalysis();
                 table_data += '</table>';
                 $('#data-table').html(table_data);
             }
