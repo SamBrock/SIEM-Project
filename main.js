@@ -21,18 +21,7 @@ function getFrequencyByCol(colNum){
     return counts;
 }
 
-function calcSDD(arr){
-    //Sort array
-    arr.sort(function(a, b){return a-b});
-
-    //Calculate array average
-    var sum, avg = 0;
-
-    if (arr.length){
-        sum = arr.reduce(function(a, b) { return a + b; });
-        avg = sum / arr.length;
-    }
-
+function calcSDD(arr, avg){
     //Calculate squared differences
     var sqDiff = [];
 
@@ -52,8 +41,7 @@ function calcSDD(arr){
     return sdd;
 }
 
-function jenksAnalysis(){
-    //Get frequencies object
+function freqArr(){
     var frequencies = getFrequency();
 
     //Convert frequencies object to array
@@ -63,49 +51,64 @@ function jenksAnalysis(){
         arr.push(value);
     })
 
-    var sdd = calcSDD(arr);
+    return arr;
+}
+
+function randParition() {
+    var arr = freqArr();
+
+    //Sort array
+    arr.sort(function(a, b){return a-b});
+
+    //Randomly partition array
+    var arrs = [],size=1;
+    var min=1;
+    var max=arr.length-1;
+    while (arr.length > 0) {
+        size = Math.min(max,Math.floor((Math.random()*max)+min));
+        arrs.push(arr.splice(0, size));
+    }
+    return arrs;
+}
+
+function jenksAnalysis(){
+    //Get array average
+    var arr = freqArr;
+
+    var sum, avg = 0;
+    if (arr.length){
+        sum = arr.reduce(function(a, b) { return a + b; });
+        avg = sum / arr.length;
+    }
+
+    //Partition the array
+    var size = 0;
+    var sdd = 450;
+    var sum = 0;
+
+    //Randomise partitions 100 times to get the lowest SDD
+    while(size < 100){
+        //Get partitions
+        size++;
+        partitions = randParition();
+
+        //Get SDD for partitions
+        var sddPartitions = [];
+
+        for(let i = 0; i < partitions.length; i++){
+            var arrSdd = calcSDD(partitions[i], avg);
+            sddPartitions.push(arrSdd);
+        }
+
+        sum = sddPartitions.reduce(function(a, b) { return a + b; });
+
+        //Keep lowest SDD
+        if(sum < sdd){
+            sdd = sum;
+        }
+    }
 
     return sdd;
-
-//    var avg = total / freqLength;
-//
-//    var squaredDifferences = [];
-//    $.each(frequencies, function(index, value){
-//        squaredDifferences.push(Math.pow((value-avg), 2));
-//    })
-//
-//    total = 0;
-//    var length = 0;
-//    var ssd = 0;
-//    $.each(squaredDifferences, function(index, value){
-//        total += value;
-//        length++;
-//    })
-//
-//    var ssd = total / length;
-//    var ssdSqrt = Math.sqrt(ssd);
-//
-//
-//    var newArr = [];
-//    $.each(frequencies, function(index, value){
-//        newArr.push(value);
-//    })
-//
-//    newArr.sort(function(a, b){return a-b});
-//
-//    var arrays = [];
-//    var size = (newArr.length/2)-1;
-//
-//    var largestValue = newArr.slice(-1).pop()
-//
-//    while (newArr.length > 0){
-//        size++;
-//        arrays.push(newArr.splice(0, size));
-//    }
-//
-//    //console.log(arrays);
-//
-//    return ssdSqrt;
 }
 
 
@@ -118,17 +121,16 @@ $(document).ready(function(){
             success: function(data)
             {
                 security_data = data.split(/\r?\n|\r/);
+                var jenksVal = jenksAnalysis();
                 var table_data = '<table>';
                 for(var count=0; count < security_data.length; count++)
                 {
                     var cell_data = security_data[count].split(",");
                     var frequencies = getFrequency();
 
-                    var jenks = jenksAnalysis();
-
                     $.each(frequencies, function(index, value){
                         if(cell_data[2] === index){
-                            if(value <= jenks){
+                            if(value <= jenksVal){
                                 table_data += '<tr class="irregular">';
                             }else{
                                 table_data += '<tr>';
@@ -149,7 +151,6 @@ $(document).ready(function(){
                     }
                     table_data += '</tr>';
                 }
-                jenksAnalysis();
                 table_data += '</table>';
                 $('#data-table').html(table_data);
             }
