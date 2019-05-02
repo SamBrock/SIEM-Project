@@ -8,7 +8,7 @@
 
     </script>
     <header>
-        <h2>SIEM Analysis</h2>
+        <h2>SIEM Project</h2>
     </header>
     <body>
         <div class="container">
@@ -19,7 +19,23 @@
                 </div>
             </div>
             <div id="graphs">
+                <div class="frequency">
+                    <div class="div-header">
+                        <h2>Frequencies</h2>
+                        <span>Click the column headers</span>
+                    </div>
+                    <div id="freq-graph">
+                    </div>
+                </div>
+                <div class="irregularities">
+                    <div class="div-header">
+                        <h2>Irregularities</h2>
+                    </div>
+                    <div id="irregular-txt">
 
+                    </div>
+
+                </div>
             </div>
         </div>
         <script src="main.js"></script>
