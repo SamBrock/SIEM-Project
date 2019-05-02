@@ -5,20 +5,22 @@ function getFrequency(){
     for(var count=0; count < security_data.length; count++)
     {
         var cell_data = security_data[count].split(",");
-        frequencies[cell_data[2]] =  (frequencies[cell_data[2]] || 0)+ 1;
+        frequencies[cell_data[1]] =  (frequencies[cell_data[1]] || 0)+ 1;
     }
     return frequencies;
 }
 
 function getFrequencyByCol(colNum){
     var colNum = colNum-1;
-    var counts = {};
+
+    //Create frequencies object
+    var frequencies = {};
     for(var count=0; count < security_data.length; count++)
     {
         var cell_data = security_data[count].split(",");
-        counts[cell_data[colNum]] =  (counts[cell_data[colNum]] || 0)+ 1;
+        frequencies[cell_data[colNum]] =  (frequencies[cell_data[colNum]] || 0)+ 1;
     }
-    return counts;
+    return frequencies;
 }
 
 function calcSDD(arr, avg){
@@ -51,14 +53,14 @@ function freqArr(){
         arr.push(value);
     })
 
+    //Sort array lowest to highest
+    arr.sort(function(a, b){return a-b});
+
     return arr;
 }
 
 function randParition() {
     var arr = freqArr();
-
-    //Sort array
-    arr.sort(function(a, b){return a-b});
 
     //Randomly partition array
     var arrs = [],size=1;
@@ -73,7 +75,7 @@ function randParition() {
 
 function jenksAnalysis(){
     //Get array average
-    var arr = freqArr;
+    var arr = freqArr();
 
     var sum, avg = 0;
     if (arr.length){
@@ -83,7 +85,8 @@ function jenksAnalysis(){
 
     //Partition the array
     var size = 0;
-    var sdd = 450;
+    //Gets the last (highest) value in the array
+    var sdd = arr.slice(-1).pop();
     var sum = 0;
 
     //Randomise partitions 100 times to get the lowest SDD
@@ -92,6 +95,7 @@ function jenksAnalysis(){
         size++;
         partitions = randParition();
 
+        //partitions = [[1,1,1,2,2,2,3,3,4,5,5], [22,57,71], [185,450]];
         //Get SDD for partitions
         var sddPartitions = [];
 
@@ -111,27 +115,26 @@ function jenksAnalysis(){
     return sdd;
 }
 
-
-
 $(document).ready(function(){
     $('#load-btn').click(function(){
         $.ajax({
-            url: "kddcup.testdata.csv",
+            url: "kddcup.testdata.10.csv",
             dataType: "text",
             success: function(data)
             {
                 security_data = data.split(/\r?\n|\r/);
                 var jenksVal = jenksAnalysis();
                 var table_data = '<table>';
+                var irregular_elem = 0;
                 for(var count=0; count < security_data.length; count++)
                 {
                     var cell_data = security_data[count].split(",");
                     var frequencies = getFrequency();
-
                     $.each(frequencies, function(index, value){
-                        if(cell_data[2] === index){
+                        if(cell_data[1] === index){
                             if(value <= jenksVal){
                                 table_data += '<tr class="irregular">';
+                                irregular_elem++;
                             }else{
                                 table_data += '<tr>';
                             }
@@ -152,23 +155,29 @@ $(document).ready(function(){
                     table_data += '</tr>';
                 }
                 table_data += '</table>';
+                $('#irregular-txt').html('<span class="highlight">'+irregular_elem+' irregular events</span> / '+security_data.length);
                 $('#data-table').html(table_data);
             }
         })
+        //Hide load button
         $('#load-btn').hide();
     })
 
+    //Get column header number
     $(document).on('click', '#data-table th', function(){
         var colNum = $(this).text();
-        var counts = getFrequencyByCol(colNum);
+        var frequencies = getFrequencyByCol(colNum);
+
+        //Toggle class to show active table header
+        $('#data-table th').removeClass("active");
+        $(this).addClass("active");
+
+        //Draw chart for clicked on column
         drawChart(colNum);
     })
 
     // Load the Visualization API and the corechart package.
     google.charts.load('current', {'packages':['corechart']});
-
-    // Set a callback to run when the Google Visualization API is loaded.
-    //google.charts.setOnLoadCallback(drawChart);
 
     // Callback that creates and populates a data table,
     // instantiates the pie chart, passes in the data and
@@ -176,26 +185,25 @@ $(document).ready(function(){
     function drawChart(colNum) {
 
         // Create the data table.
-        var counts = getFrequencyByCol(colNum);
+        var frequencies = getFrequencyByCol(colNum);
 
         var data = new google.visualization.DataTable();
         data.addColumn('string', 'Column');
         data.addColumn('number', 'Frequency');
 
-        $.each(counts, function(index, value){
+        $.each(frequencies, function(index, value){
             data.addRow([index, value]);
         })
 
         // Set chart options
         var options = {
             'title':'Column '+colNum+' Frequencies',
-            'width':500,
-            'height':400
+            'width':460,
+            'height':350
         };
 
         // Instantiate and draw our chart, passing in some options.
-        var chart = new google.visualization.PieChart(document.getElementById('graphs'));
+        var chart = new google.visualization.PieChart(document.getElementById('freq-graph'));
         chart.draw(data, options);
     }
-
 })
