@@ -1,3 +1,7 @@
+<?php
+include("parser.php");
+?>
+
 <html>
     <head>
         <link href="style.css" rel="stylesheet" type="text/css">
@@ -5,7 +9,7 @@
         <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     </head>
     <script>
-
+        var security_data = <?php echo json_encode($data) ?>;
     </script>
     <header>
         <h2>SIEM Project</h2>
@@ -24,17 +28,13 @@
                         <h2>Frequencies</h2>
                         <span>Click the column headers</span>
                     </div>
-                    <div id="freq-graph">
-                    </div>
+                    <div id="freq-graph"></div>
                 </div>
                 <div class="irregularities">
                     <div class="div-header">
                         <h2>Irregularities</h2>
                     </div>
-                    <div id="irregular-txt">
-
-                    </div>
-
+                    <div id="irregular-txt"></div>
                 </div>
             </div>
         </div>
