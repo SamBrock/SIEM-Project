@@ -33,8 +33,13 @@ include("parser.php");
                 <div class="irregularities">
                     <div class="div-header">
                         <h2>Irregularities</h2>
+
                     </div>
                     <div id="irregular-txt"></div>
+                    <div id="check" style="display: none;">
+                        <input type="checkbox" id="irregular-check" name="irr" ><label for="irr"> Show only irregular events</label>
+                    </div>
+
                 </div>
             </div>
         </div>

@@ -37,7 +37,7 @@ header h2{
     margin: 0 0 20px 0;
 }
 .irregularities{
-    height: 80px;
+    height: 110px;
 }
 #data-table table{
     display: block;
@@ -123,4 +123,10 @@ header h2{
 }
 .highlight{
     color: #ff0000;
+}
+#check{
+    font-size: 0.9em;
+}
+#irregular-check{
+    cursor: pointer;
 }

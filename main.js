@@ -57,7 +57,7 @@ function freqArr(){
     return arr;
 }
 
-function randParition() {
+function rndParition() {
     var arr = freqArr();
 
     //Randomly partition array
@@ -91,7 +91,7 @@ function jenksAnalysis(){
     while(size < 100){
         //Get partitions
         size++;
-        partitions = randParition();
+        partitions = rndParition();
 
         //partitions = [[1,1,1,2,2,2,3,3,4,5,5], [22,57,71], [185,450]];
         //Get SDD for partitions
@@ -123,16 +123,23 @@ $(document).ready(function(){
             var cell_data = security_data[count];
 
             var frequencies = getFrequency();
-            $.each(frequencies, function(index, value){
-                if(cell_data[0] === index){
-                    if(value <= cutoff){
-                        table_data += '<tr class="irregular">';
-                        irregular_events++;
-                    }else{
-                        table_data += '<tr>';
+
+            if(count===0){
+                table_data += '<tr class="header">';
+            }else{
+                $.each(frequencies, function(index, value){
+                    if(cell_data[0] === index){
+                        if(value <= cutoff){
+                            table_data += '<tr class="irregular">';
+                            irregular_events++;
+                        }else{
+                            table_data += '<tr>';
+                        }
                     }
-                }
-            })
+                })
+            }
+
+
 
             table_data += '<td>'+count+'</td>';
 
@@ -149,6 +156,7 @@ $(document).ready(function(){
         }
         table_data += '</table>';
         $('#irregular-txt').html('<span class="highlight">'+irregular_events+' irregular events</span> / '+security_data.length);
+        $('#check').show();
         $('#data-table').html(table_data);
         //Hide load button
         $('#load-btn').hide();
@@ -165,6 +173,20 @@ $(document).ready(function(){
 
         //Draw chart for clicked on column
         drawChart(colNum);
+    })
+
+    $(document).on('change', '#irregular-check', function(){
+        if ($('#irregular-check').is(':checked')) {
+            //Hide all rows except header or irregular events
+            $('#data-table tr').each(function() {
+                $(this).not('.irregular').not('.header').hide()
+            });
+        } else {
+            //Show all rows except header or irregular events
+            $('#data-table tr').each(function() {
+                $(this).not('.irregular').not('.header').show()
+            });
+        }
     })
 
     // Load the Visualization API and the corechart package.
