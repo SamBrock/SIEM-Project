@@ -1,11 +1,9 @@
-var security_data;
-
 function getFrequency(){
     var frequencies = {};
     for(var count=0; count < security_data.length; count++)
     {
-        var cell_data = security_data[count].split(",");
-        frequencies[cell_data[1]] =  (frequencies[cell_data[1]] || 0)+ 1;
+        var cell_data = security_data[count];
+        frequencies[cell_data[0]] =  (frequencies[cell_data[0]] || 0)+ 1;
     }
     return frequencies;
 }
@@ -17,7 +15,7 @@ function getFrequencyByCol(colNum){
     var frequencies = {};
     for(var count=0; count < security_data.length; count++)
     {
-        var cell_data = security_data[count].split(",");
+        var cell_data = security_data[count];
         frequencies[cell_data[colNum]] =  (frequencies[cell_data[colNum]] || 0)+ 1;
     }
     return frequencies;
@@ -117,48 +115,41 @@ function jenksAnalysis(){
 
 $(document).ready(function(){
     $('#load-btn').click(function(){
-        $.ajax({
-            url: "kddcup.testdata.10.csv",
-            dataType: "text",
-            success: function(data)
-            {
-                security_data = data.split(/\r?\n|\r/);
-                var jenksVal = jenksAnalysis();
-                var table_data = '<table>';
-                var irregular_elem = 0;
-                for(var count=0; count < security_data.length; count++)
-                {
-                    var cell_data = security_data[count].split(",");
-                    var frequencies = getFrequency();
-                    $.each(frequencies, function(index, value){
-                        if(cell_data[1] === index){
-                            if(value <= jenksVal){
-                                table_data += '<tr class="irregular">';
-                                irregular_elem++;
-                            }else{
-                                table_data += '<tr>';
-                            }
-                        }
-                    })
+        var table_data = '<table>';
+        var irregular_events = 0;
+        var cutoff = jenksAnalysis();
+        for(var count=0; count < security_data.length; count++)
+        {
+            var cell_data = security_data[count];
 
-                    table_data += '<td>'+count+'</td>';
-
-                    for(var cell_count = 0; cell_count < cell_data.length; cell_count++)
-                    {
-                        if(count===0){
-                            table_data += '<th>'+(cell_count+1)+'</th>';
-                        } else {
-                            table_data += '<td>'+cell_data[cell_count]+'</td>';
-                        }
-
+            var frequencies = getFrequency();
+            $.each(frequencies, function(index, value){
+                if(cell_data[0] === index){
+                    if(value <= cutoff){
+                        table_data += '<tr class="irregular">';
+                        irregular_events++;
+                    }else{
+                        table_data += '<tr>';
                     }
-                    table_data += '</tr>';
                 }
-                table_data += '</table>';
-                $('#irregular-txt').html('<span class="highlight">'+irregular_elem+' irregular events</span> / '+security_data.length);
-                $('#data-table').html(table_data);
+            })
+
+            table_data += '<td>'+count+'</td>';
+
+            for(var cell_count = 0; cell_count < cell_data.length; cell_count++)
+            {
+                if(count===0){
+                    table_data += '<th>'+(cell_count+1)+'</th>';
+                } else {
+                    table_data += '<td>'+cell_data[cell_count]+'</td>';
+                }
+
             }
-        })
+            table_data += '</tr>';
+        }
+        table_data += '</table>';
+        $('#irregular-txt').html('<span class="highlight">'+irregular_events+' irregular events</span> / '+security_data.length);
+        $('#data-table').html(table_data);
         //Hide load button
         $('#load-btn').hide();
     })
